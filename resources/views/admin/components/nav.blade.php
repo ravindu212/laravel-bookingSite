@@ -14,6 +14,9 @@
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('admin.bookings.index') ? 'active' : '' }}" href="{{ route('admin.bookings.index') }}">Bookings</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {{ request()->routeIs('admin.reviews.index') ? 'active' : '' }}" href="{{ route('admin.reviews.index') }}">Reviews</a>
+        </li>
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item">

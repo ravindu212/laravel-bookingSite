@@ -14,7 +14,7 @@
                 </p>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="#stays" class="btn btn-warning btn-lg fw-bold px-4">Explore stays</a>
-                    <a href="{{ route('admin.login') }}" class="btn btn-outline-light btn-lg px-4">Open admin</a>
+                    <a href="{{ auth()->check() ? route('dashboard') : route('admin.login') }}" class="btn btn-outline-light btn-lg px-4">Open admin</a>
                 </div>
             </div>
             <div class="col-lg-4 offset-lg-1 mt-5 mt-lg-0">
@@ -117,6 +117,10 @@
             </div>
         </div>
     </section>
+
+    <livewire:customer-reviews />
+
+    @include('public.components.faq')
 </main>
 
 @include('public.components.footer')

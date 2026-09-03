@@ -7,6 +7,7 @@
     <title>Ceylon Trails</title>
     <link rel="stylesheet" href="{{ asset('assets/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/site.css') }}">
+    @livewireStyles
 </head>
 
 <body>

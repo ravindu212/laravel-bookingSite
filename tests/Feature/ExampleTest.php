@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Booking;
 use App\Models\Hotel;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
@@ -113,6 +115,22 @@ class ExampleTest extends TestCase
             ->assertRedirect(route('admin.login'));
     }
 
+    public function test_logged_in_admin_links_go_to_dashboard(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee(route('dashboard'))
+            ->assertDontSee(route('admin.login'));
+
+        $this->get(route('admin.login'))
+            ->assertRedirect(route('dashboard'));
+
+        $this->get(route('admin.register'))
+            ->assertRedirect(route('dashboard'));
+    }
+
     public function test_admin_can_register_and_password_is_hashed(): void
     {
         $response = $this->post(route('admin.register.store'), [
@@ -171,6 +189,149 @@ class ExampleTest extends TestCase
             ->assertSee('Tea country mornings')
             ->assertSee('Old streets by the sea')
             ->assertSee('Wild south days');
+    }
+
+    public function test_public_site_shows_faq_section(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Questions before you book')
+            ->assertSee('How do I book a stay?')
+            ->assertSee('Can I contact hotels directly?')
+            ->assertSee('Are these real listings?')
+            ->assertSee('Can I cancel a booking request?');
+    }
+
+    public function test_public_site_shows_customer_reviews_section(): void
+    {
+        Review::create([
+            'customer_name' => 'Kavindi Fernando',
+            'location' => 'Galle, Sri Lanka',
+            'rating' => 5,
+            'comment' => 'The booking request was simple and the stay ideas felt local.',
+            'is_approved' => true,
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('What travellers say')
+            ->assertSee('Add review')
+            ->assertSee('Kavindi Fernando')
+            ->assertSee('Galle, Sri Lanka')
+            ->assertSee('The booking request was simple and the stay ideas felt local.');
+    }
+
+    public function test_customer_can_add_a_review(): void
+    {
+        Livewire::test('customer-reviews')
+            ->set('customerName', 'Dinesh Perera')
+            ->set('location', 'Ella, Sri Lanka')
+            ->set('rating', '4')
+            ->set('comment', 'Nice practice travel site with useful hotel details.')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSee('Thank you. Your review will show after admin approval.');
+
+        $this->assertDatabaseHas('reviews', [
+            'customer_name' => 'Dinesh Perera',
+            'location' => 'Ella, Sri Lanka',
+            'rating' => 4,
+            'comment' => 'Nice practice travel site with useful hotel details.',
+            'is_approved' => false,
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertDontSee('Dinesh Perera')
+            ->assertDontSee('Nice practice travel site with useful hotel details.');
+    }
+
+    public function test_customer_can_add_a_review_without_livewire_javascript(): void
+    {
+        $response = $this->post(route('reviews.store'), [
+            'customer_name' => 'Tharushi Silva',
+            'location' => 'Kandy, Sri Lanka',
+            'rating' => 5,
+            'comment' => 'Lovely simple travel guide for Sri Lankan stays.',
+        ]);
+
+        $response
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('review_status');
+
+        $this->assertDatabaseHas('reviews', [
+            'customer_name' => 'Tharushi Silva',
+            'is_approved' => false,
+        ]);
+    }
+
+    public function test_old_reviews_url_redirects_back_to_home_reviews_section(): void
+    {
+        $this->get('/reviews')
+            ->assertRedirect('/#reviews');
+    }
+
+    public function test_customer_review_requires_useful_details(): void
+    {
+        Livewire::test('customer-reviews')
+            ->call('save')
+            ->assertHasErrors([
+                'customerName' => 'required',
+                'rating' => 'required',
+                'comment' => 'required',
+            ]);
+    }
+
+    public function test_admin_can_view_pending_customer_reviews(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Review::create([
+            'customer_name' => 'Malith Jayasuriya',
+            'location' => 'Kandy, Sri Lanka',
+            'rating' => 5,
+            'comment' => 'Lovely travel ideas for a small Sri Lankan trip.',
+            'is_approved' => false,
+        ]);
+
+        $this->get(route('admin.reviews.index'))
+            ->assertOk()
+            ->assertSee('Malith Jayasuriya')
+            ->assertSee('Pending')
+            ->assertSee('Approve');
+    }
+
+    public function test_admin_can_approve_customer_review(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $review = Review::create([
+            'customer_name' => 'Sanduni Silva',
+            'location' => 'Matara, Sri Lanka',
+            'rating' => 5,
+            'comment' => 'Easy booking request and clear stay details.',
+            'is_approved' => false,
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertDontSee('Sanduni Silva');
+
+        $response = $this->patch(route('admin.reviews.approve', $review));
+
+        $response
+            ->assertRedirect(route('admin.reviews.index'))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'is_approved' => true,
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Sanduni Silva')
+            ->assertSee('Easy booking request and clear stay details.');
     }
 
     public function test_hotel_booking_page_displays_hotel_details(): void

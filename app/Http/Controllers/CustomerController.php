@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Hotel;
+use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -36,5 +37,19 @@ class CustomerController extends Controller
         return redirect()
             ->route('hotels.booking', $hotel)
             ->with('status', 'Booking request sent. We will contact you soon.');
+    }
+
+    public function storeReview(Request $request): RedirectResponse
+    {
+        Review::create($request->validate([
+            'customer_name' => ['required', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['required', 'string', 'max:500'],
+        ]) + ['is_approved' => false]);
+
+        return redirect()
+            ->route('home')
+            ->with('review_status', 'Thank you. Your review will show after admin approval.');
     }
 }

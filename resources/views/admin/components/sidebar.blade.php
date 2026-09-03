@@ -28,9 +28,9 @@
             <span>04</span>
             Bookings
         </a>
-        <a class="admin-sidebar__link is-muted" href="#" aria-disabled="true">
+        <a class="admin-sidebar__link {{ $active === 'reviews' ? 'is-active' : '' }}" href="{{ route('admin.reviews.index') }}">
             <span>05</span>
-            Messages
+            Reviews
         </a>
         <a class="admin-sidebar__link is-muted" href="#" aria-disabled="true">
             <span>06</span>

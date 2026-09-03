@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Hotel;
+use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,6 +23,22 @@ class AdminController extends Controller
         $bookings = Booking::with('hotel')->latest()->get();
 
         return view('admin.bookings', compact('bookings'));
+    }
+
+    public function reviews(): View
+    {
+        $reviews = Review::latest()->get();
+
+        return view('admin.reviews', compact('reviews'));
+    }
+
+    public function approveReview(Review $review): RedirectResponse
+    {
+        $review->update(['is_approved' => true]);
+
+        return redirect()
+            ->route('admin.reviews.index')
+            ->with('status', 'Review approved.');
     }
 
     public function storeHotel(Request $request): RedirectResponse
