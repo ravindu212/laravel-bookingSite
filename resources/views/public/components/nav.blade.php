@@ -12,7 +12,11 @@
           <a class="nav-link" href="{{ route('home') }}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ auth()->check() ? route('dashboard') : route('admin.login') }}">Admin</a>
+          @auth
+            <a class="nav-link" href="{{ route('dashboard') }}">Admin</a>
+          @else
+            <a class="nav-link" href="{{ route('admin.login') }}">Admin</a>
+          @endauth
         </li>
       </ul>
     </div>

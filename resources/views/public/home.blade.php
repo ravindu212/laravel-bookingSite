@@ -14,7 +14,11 @@
                 </p>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="#stays" class="btn btn-warning btn-lg fw-bold px-4">Explore stays</a>
-                    <a href="{{ auth()->check() ? route('dashboard') : route('admin.login') }}" class="btn btn-outline-light btn-lg px-4">Open admin</a>
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="btn btn-outline-light btn-lg px-4">Open admin</a>
+                    @else
+                        <a href="{{ route('admin.login') }}" class="btn btn-outline-light btn-lg px-4">Open admin</a>
+                    @endauth
                 </div>
             </div>
             <div class="col-lg-4 offset-lg-1 mt-5 mt-lg-0">
