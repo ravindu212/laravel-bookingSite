@@ -19,6 +19,12 @@
         <li class="nav-item">
           <a class="nav-link" href="{{ route('home') }}">View Site</a>
         </li>
+        <li class="nav-item">
+          <form action="{{ route('admin.logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="nav-link admin-logout-button">Logout</button>
+          </form>
+        </li>
       </ul>
     </div>
   </div>

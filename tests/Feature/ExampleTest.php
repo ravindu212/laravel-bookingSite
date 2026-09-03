@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Booking;
 use App\Models\Hotel;
+use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
@@ -33,6 +35,8 @@ class ExampleTest extends TestCase
 
     public function test_admin_can_create_a_travel_stay(): void
     {
+        $this->actingAs(User::factory()->create());
+
         $response = $this->post(route('admin.hotels.store'), [
             'name' => 'Kandy Lake View Villa',
             'description' => 'A simple stay close to the Temple of the Tooth and Kandy Lake.',
@@ -56,6 +60,8 @@ class ExampleTest extends TestCase
 
     public function test_created_travel_stay_appears_on_public_site(): void
     {
+        $this->actingAs(User::factory()->create());
+
         $this->post(route('admin.hotels.store'), [
             'name' => 'Galle Fort Courtyard Stay',
             'description' => 'A practice listing beside lighthouse walks, old walls, and southern sea breeze.',
@@ -95,9 +101,66 @@ class ExampleTest extends TestCase
         $this->get(route('admin.login'))
             ->assertOk()
             ->assertSee('Sign in')
-            ->assertSee('This is a practice login screen only.')
-            ->assertSee('action="'.route('dashboard').'"', false)
+            ->assertSee('Login to manage stays and booking requests.')
+            ->assertSee('action="'.route('admin.login.store').'"', false)
+            ->assertSee(route('admin.register'))
             ->assertDontSee('Open practice dashboard');
+    }
+
+    public function test_guest_is_redirected_to_login_before_admin_dashboard(): void
+    {
+        $this->get(route('dashboard'))
+            ->assertRedirect(route('admin.login'));
+    }
+
+    public function test_admin_can_register_and_password_is_hashed(): void
+    {
+        $response = $this->post(route('admin.register.store'), [
+            'name' => 'Travel Admin',
+            'email' => 'admin@ceylontrails.test',
+            'password' => 'secret-password',
+            'password_confirmation' => 'secret-password',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+
+        $user = User::where('email', 'admin@ceylontrails.test')->first();
+
+        $this->assertNotNull($user);
+        $this->assertTrue(Hash::check('secret-password', $user->password));
+        $this->assertNotSame('secret-password', $user->password);
+    }
+
+    public function test_admin_can_login_with_valid_details(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'owner@ceylontrails.test',
+            'password' => Hash::make('secret-password'),
+        ]);
+
+        $response = $this->post(route('admin.login.store'), [
+            'email' => 'owner@ceylontrails.test',
+            'password' => 'secret-password',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_admin_cannot_login_with_wrong_password(): void
+    {
+        User::factory()->create([
+            'email' => 'owner@ceylontrails.test',
+            'password' => Hash::make('secret-password'),
+        ]);
+
+        $this->post(route('admin.login.store'), [
+            'email' => 'owner@ceylontrails.test',
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertGuest();
     }
 
     public function test_public_site_shows_static_travel_moods_section(): void
@@ -178,6 +241,8 @@ class ExampleTest extends TestCase
 
     public function test_admin_can_view_booking_requests(): void
     {
+        $this->actingAs(User::factory()->create());
+
         $hotel = Hotel::create([
             'name' => 'Sigiriya Garden Villa',
             'location' => 'Sigiriya, Central Province',
@@ -204,6 +269,8 @@ class ExampleTest extends TestCase
 
     public function test_admin_can_open_the_edit_form_for_a_travel_stay(): void
     {
+        $this->actingAs(User::factory()->create());
+
         $hotel = Hotel::create([
             'name' => 'Original Stay',
             'description' => 'Original description.',
@@ -218,6 +285,8 @@ class ExampleTest extends TestCase
 
     public function test_admin_can_update_a_travel_stay(): void
     {
+        $this->actingAs(User::factory()->create());
+
         $hotel = Hotel::create([
             'name' => 'Old Stay',
             'description' => 'Old description.',
@@ -252,6 +321,8 @@ class ExampleTest extends TestCase
 
     public function test_admin_can_delete_a_travel_stay(): void
     {
+        $this->actingAs(User::factory()->create());
+
         $hotel = Hotel::create([
             'name' => 'Delete Me Stay',
             'description' => 'This stay should be removed.',

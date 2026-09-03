@@ -384,6 +384,11 @@
     color: #ffffff;
 }
 
+.admin-logout-button {
+    background: transparent;
+    border: 0;
+}
+
 .admin-layout {
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
