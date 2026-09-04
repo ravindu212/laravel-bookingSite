@@ -2,8 +2,8 @@
     @csrf
 
     <p class="travel-eyebrow travel-eyebrow--dark mb-3">Request a stay</p>
-    <h2 class="h3 fw-bold mb-2">Send booking request</h2>
-    <p class="text-muted mb-4">Share your dates and contact details. The admin can view this request from the dashboard.</p>
+    <h2 class="h4 fw-bold mb-2">Send booking request</h2>
+    <p class="text-muted mb-4">Share your dates and contact details.</p>
 
     @if($errors->any())
         <div class="alert alert-danger">
@@ -69,5 +69,5 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-success btn-lg mt-4">Send booking request</button>
+    <button type="submit" class="btn btn-success btn-lg mt-4 w-100">Send booking request</button>
 </form>

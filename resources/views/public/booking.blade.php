@@ -14,12 +14,14 @@
                 </div>
             @endif
 
+            @include('public.components.booking-cover', ['hotel' => $hotel, 'imageUrl' => $imageUrl])
+
             <div class="row g-4 align-items-start">
-                <div class="col-lg-5">
-                    @include('public.components.booking-summary', ['hotel' => $hotel, 'imageUrl' => $imageUrl])
-                </div>
                 <div class="col-lg-7">
                     @include('public.components.booking-form', ['hotel' => $hotel])
+                </div>
+                <div class="col-lg-5">
+                    @include('public.components.booking-summary', ['hotel' => $hotel])
                 </div>
             </div>
         </div>
