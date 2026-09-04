@@ -18,6 +18,7 @@
                         <th>Price</th>
                         <th>People</th>
                         <th>Description</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,6 +36,16 @@
                             </td>
                             <td>{{ $inventory->people_count ? $inventory->people_count.' people' : 'Not set' }}</td>
                             <td>{{ $inventory->description ?: 'No description' }}</td>
+                            <td>
+                                <div class="admin-table__actions">
+                                    <a href="{{ route('admin.hotels.inventories.edit', [$inventory->hotel_id, $inventory]) }}" class="btn btn-sm btn-outline-success">Edit</a>
+                                    <form action="{{ route('admin.hotels.inventories.destroy', [$inventory->hotel_id, $inventory]) }}" method="POST" onsubmit="return confirm('Delete this inventory item?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Hotel;
+use App\Models\HotelInventory;
 use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,6 +88,35 @@ class AdminController extends Controller
         return redirect()
             ->route('admin.hotels.inventories', $hotel)
             ->with('status', count($items).' inventory items imported.');
+    }
+
+    public function editHotelInventory(Hotel $hotel, HotelInventory $inventory): View
+    {
+        abort_unless($inventory->hotel_id === $hotel->id, 404);
+
+        return view('admin.edit-inventory', compact('hotel', 'inventory'));
+    }
+
+    public function updateHotelInventory(Request $request, Hotel $hotel, HotelInventory $inventory): RedirectResponse
+    {
+        abort_unless($inventory->hotel_id === $hotel->id, 404);
+
+        $inventory->update($this->validateInventory($request));
+
+        return redirect()
+            ->route('admin.hotels.inventories', $hotel)
+            ->with('status', 'Inventory item updated.');
+    }
+
+    public function destroyHotelInventory(Hotel $hotel, HotelInventory $inventory): RedirectResponse
+    {
+        abort_unless($inventory->hotel_id === $hotel->id, 404);
+
+        $inventory->delete();
+
+        return redirect()
+            ->route('admin.hotels.inventories', $hotel)
+            ->with('status', 'Inventory item deleted.');
     }
 
     public function updateHotel(Request $request, Hotel $hotel): RedirectResponse

@@ -26,6 +26,9 @@ Route::prefix('admin')->group(function (): void {
         Route::get('/hotels/{hotel}/inventories', [AdminController::class, 'hotelInventories'])->name('admin.hotels.inventories');
         Route::post('/hotels/{hotel}/inventories', [AdminController::class, 'storeHotelInventory'])->name('admin.hotels.inventories.store');
         Route::post('/hotels/{hotel}/inventories/import', [AdminController::class, 'importHotelInventories'])->name('admin.hotels.inventories.import');
+        Route::get('/hotels/{hotel}/inventories/{inventory}/edit', [AdminController::class, 'editHotelInventory'])->name('admin.hotels.inventories.edit');
+        Route::put('/hotels/{hotel}/inventories/{inventory}', [AdminController::class, 'updateHotelInventory'])->name('admin.hotels.inventories.update');
+        Route::delete('/hotels/{hotel}/inventories/{inventory}', [AdminController::class, 'destroyHotelInventory'])->name('admin.hotels.inventories.destroy');
         Route::get('/hotels/{hotel}/edit', [AdminController::class, 'editHotel'])->name('admin.hotels.edit');
         Route::put('/hotels/{hotel}', [AdminController::class, 'updateHotel'])->name('admin.hotels.update');
         Route::delete('/hotels/{hotel}', [AdminController::class, 'destroyHotel'])->name('admin.hotels.destroy');

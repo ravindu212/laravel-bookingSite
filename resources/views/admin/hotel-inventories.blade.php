@@ -22,7 +22,10 @@
 
                 <div class="row g-4">
                     <div class="col-lg-7">
-                        @include('admin.components.inventory-form', ['hotel' => $hotel])
+                        @include('admin.components.inventory-form', [
+                            'hotel' => $hotel,
+                            'action' => route('admin.hotels.inventories.store', $hotel),
+                        ])
                     </div>
                     <div class="col-lg-5">
                         @include('admin.components.inventory-import', ['hotel' => $hotel])

@@ -548,6 +548,85 @@ class ExampleTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_open_inventory_edit_form(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+        $inventory = HotelInventory::factory()->for($hotel)->create([
+            'name' => 'Dinner buffet',
+        ]);
+
+        $this->get(route('admin.hotels.inventories.edit', [$hotel, $inventory]))
+            ->assertOk()
+            ->assertSee('Edit inventory')
+            ->assertSee('Dinner buffet');
+    }
+
+    public function test_admin_can_update_inventory(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+        $inventory = HotelInventory::factory()->for($hotel)->create([
+            'name' => 'Old meal',
+        ]);
+
+        $response = $this->put(route('admin.hotels.inventories.update', [$hotel, $inventory]), [
+            'category' => 'Entertainment',
+            'menu_type' => 'Games',
+            'name' => 'Indoor games package',
+            'description' => 'Carrom, chess, and cards for a relaxed evening.',
+            'price' => 1200,
+            'people_count' => 4,
+        ]);
+
+        $response
+            ->assertRedirect(route('admin.hotels.inventories', $hotel))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('hotel_inventories', [
+            'id' => $inventory->id,
+            'category' => 'Entertainment',
+            'menu_type' => 'Games',
+            'name' => 'Indoor games package',
+            'price' => 1200,
+            'people_count' => 4,
+        ]);
+    }
+
+    public function test_admin_can_delete_inventory(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+        $inventory = HotelInventory::factory()->for($hotel)->create();
+
+        $response = $this->delete(route('admin.hotels.inventories.destroy', [$hotel, $inventory]));
+
+        $response
+            ->assertRedirect(route('admin.hotels.inventories', $hotel))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseMissing('hotel_inventories', [
+            'id' => $inventory->id,
+        ]);
+    }
+
+    public function test_admin_cannot_update_inventory_from_another_hotel(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+        $otherHotel = Hotel::factory()->create();
+        $inventory = HotelInventory::factory()->for($otherHotel)->create();
+
+        $this->put(route('admin.hotels.inventories.update', [$hotel, $inventory]), [
+            'category' => 'Foods',
+            'name' => 'Wrong hotel item',
+        ])->assertNotFound();
+    }
+
     public function test_admin_can_update_a_travel_stay(): void
     {
         $this->actingAs(User::factory()->create());
