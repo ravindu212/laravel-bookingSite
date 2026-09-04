@@ -548,6 +548,96 @@ class ExampleTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_import_csv_detected_as_excel_file(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+        $path = tempnam(sys_get_temp_dir(), 'inventory');
+
+        file_put_contents($path, "category,menu_type,name,description,price,people_count\n");
+
+        $file = new UploadedFile($path, 'inventory.csv', 'application/vnd.ms-excel', null, true);
+
+        $this->post(route('admin.hotels.inventories.import', $hotel), [
+            'inventory_file' => $file,
+        ])
+            ->assertRedirect(route('admin.hotels.inventories', $hotel))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', '0 inventory items imported.');
+    }
+
+    public function test_admin_can_import_csv_with_missing_or_extra_columns(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+        $file = UploadedFile::fake()->createWithContent(
+            'inventory.csv',
+            "\xEF\xBB\xBFcategory,menu_type,name,description,price,people_count\nFoods,Breakfast,String hoppers\nEntertainment,Pool,Swimming Pool,Evening pool pass,2500,2,extra value\n"
+        );
+
+        $response = $this->post(route('admin.hotels.inventories.import', $hotel), [
+            'inventory_file' => $file,
+        ]);
+
+        $response
+            ->assertRedirect(route('admin.hotels.inventories', $hotel))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', '2 inventory items imported.');
+
+        $this->assertDatabaseHas('hotel_inventories', [
+            'hotel_id' => $hotel->id,
+            'category' => 'Foods',
+            'menu_type' => 'Breakfast',
+            'name' => 'String hoppers',
+        ]);
+
+        $this->assertDatabaseHas('hotel_inventories', [
+            'hotel_id' => $hotel->id,
+            'category' => 'Entertainment',
+            'menu_type' => 'Pool',
+            'name' => 'Swimming Pool',
+            'price' => 2500,
+            'people_count' => 2,
+        ]);
+    }
+
+    public function test_admin_can_export_inventory_to_csv(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create(['name' => 'Galle Export Stay']);
+        HotelInventory::factory()->for($hotel)->create([
+            'category' => 'Foods',
+            'menu_type' => 'Dinner',
+            'name' => 'Seafood dinner',
+            'description' => 'Fresh fish curry with rice.',
+            'price' => 4200,
+            'people_count' => 2,
+        ]);
+        HotelInventory::factory()->for($hotel)->create([
+            'category' => 'Entertainment',
+            'menu_type' => 'Games',
+            'name' => 'Indoor games',
+            'description' => 'Carrom and chess.',
+            'price' => 800,
+            'people_count' => 4,
+        ]);
+
+        $response = $this->get(route('admin.hotels.inventories.export', $hotel));
+
+        $response
+            ->assertOk()
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+        $content = $response->streamedContent();
+
+        $this->assertStringContainsString('category,menu_type,name,description,price,people_count', $content);
+        $this->assertStringContainsString('Foods,Dinner,"Seafood dinner","Fresh fish curry with rice.",4200.00,2', $content);
+        $this->assertStringContainsString('Entertainment,Games,"Indoor games","Carrom and chess.",800.00,4', $content);
+    }
+
     public function test_admin_can_open_inventory_edit_form(): void
     {
         $this->actingAs(User::factory()->create());

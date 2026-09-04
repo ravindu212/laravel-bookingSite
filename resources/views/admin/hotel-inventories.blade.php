@@ -9,8 +9,8 @@
             @include('admin.components.page-header', [
                 'title' => 'Hotel inventory',
                 'description' => 'Add foods, package items, transport, and other details for '.$hotel->name.'.',
-                'actionHref' => route('dashboard'),
-                'actionLabel' => 'Back to dashboard',
+                'actionHref' => route('admin.hotels.inventories.export', $hotel),
+                'actionLabel' => 'Export CSV',
             ])
 
             <div class="admin-form-wrap">

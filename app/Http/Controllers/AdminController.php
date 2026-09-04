@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
 {
@@ -76,7 +77,7 @@ class AdminController extends Controller
     public function importHotelInventories(Request $request, Hotel $hotel): RedirectResponse
     {
         $request->validate([
-            'inventory_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'inventory_file' => ['required', 'file', 'extensions:csv,txt', 'max:2048'],
         ]);
 
         $items = $this->readInventoryCsv($request->file('inventory_file'));
@@ -88,6 +89,36 @@ class AdminController extends Controller
         return redirect()
             ->route('admin.hotels.inventories', $hotel)
             ->with('status', count($items).' inventory items imported.');
+    }
+
+    public function exportHotelInventories(Hotel $hotel): StreamedResponse
+    {
+        $filename = str($hotel->name)->slug().'-inventories.csv';
+
+        return response()->streamDownload(function () use ($hotel): void {
+            $file = fopen('php://output', 'w');
+
+            if ($file === false) {
+                return;
+            }
+
+            fputcsv($file, ['category', 'menu_type', 'name', 'description', 'price', 'people_count']);
+
+            foreach ($hotel->inventories()->orderBy('category')->orderBy('name')->get() as $inventory) {
+                fputcsv($file, [
+                    $inventory->category,
+                    $inventory->menu_type,
+                    $inventory->name,
+                    $inventory->description,
+                    $inventory->price,
+                    $inventory->people_count,
+                ]);
+            }
+
+            fclose($file);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
     public function editHotelInventory(Hotel $hotel, HotelInventory $inventory): View
@@ -184,11 +215,13 @@ class AdminController extends Controller
         }
 
         $headers = fgetcsv($handle) ?: [];
-        $headers = array_map(fn (string $header): string => strtolower(trim($header)), $headers);
+        $headers = array_map(function (string $header): string {
+            return strtolower(trim($header, " \t\n\r\0\x0B\xEF\xBB\xBF"));
+        }, $headers);
         $items = [];
 
         while (($row = fgetcsv($handle)) !== false) {
-            $row = array_pad($row, count($headers), '');
+            $row = array_slice(array_pad($row, count($headers), ''), 0, count($headers));
             $data = array_combine($headers, $row);
 
             if ($data === false) {
