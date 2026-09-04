@@ -41,6 +41,7 @@
                             <td>
                                 <div class="admin-table__actions">
                                     <a href="{{ route('hotels.booking', $hotel) }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">Booking</a>
+                                    <a href="{{ route('admin.hotels.inventories', $hotel) }}" class="btn btn-sm btn-outline-primary">Inventory</a>
                                     <a href="{{ route('admin.hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-success">Edit</a>
                                     <form action="{{ route('admin.hotels.destroy', $hotel) }}" method="POST" onsubmit="return confirm('Delete this stay?');">
                                         @csrf

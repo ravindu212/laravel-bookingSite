@@ -26,4 +26,9 @@ class Hotel extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(HotelInventory::class);
+    }
 }

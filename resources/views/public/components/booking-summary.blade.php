@@ -10,6 +10,8 @@
         <p><strong>Email:</strong> {{ $hotel->email ?: 'Not set' }}</p>
     </div>
 
+    @include('public.components.hotel-inventory', ['inventories' => $hotel->inventories])
+
     <div class="d-flex flex-wrap gap-2 mt-4">
         @if($hotel->website)
             <a href="{{ $hotel->website }}" class="btn btn-success" target="_blank" rel="noopener">Visit hotel website</a>

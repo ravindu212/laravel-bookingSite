@@ -382,6 +382,82 @@
     margin-bottom: 0;
 }
 
+.hotel-inventory {
+    background: #f9fcfb;
+    border: 1px solid #dfece7;
+    border-radius: 8px;
+    margin-top: 1rem;
+    padding: 1.25rem;
+}
+
+.hotel-inventory__groups {
+    display: grid;
+    gap: 1rem;
+}
+
+.hotel-inventory__group {
+    border-top: 1px solid #dfece7;
+    padding-top: 1rem;
+}
+
+.hotel-inventory__group:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.hotel-inventory__group strong {
+    color: #0d7b67;
+    display: block;
+    margin-bottom: 0.6rem;
+}
+
+.hotel-inventory__group ul {
+    display: grid;
+    gap: 0.65rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.hotel-inventory__group li {
+    background: #ffffff;
+    border: 1px solid #e5efeb;
+    border-radius: 8px;
+    padding: 0.8rem;
+}
+
+.hotel-inventory__group span,
+.hotel-inventory__group small {
+    display: block;
+}
+
+.hotel-inventory__group span {
+    color: #1f2b2a;
+    font-weight: 800;
+}
+
+.hotel-inventory__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+}
+
+.hotel-inventory__meta em {
+    background: #e8f3ef;
+    border-radius: 999px;
+    color: #0d5c4f;
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 800;
+    padding: 0.25rem 0.55rem;
+}
+
+.hotel-inventory__group small {
+    color: #61746f;
+    margin-top: 0.2rem;
+}
+
 .booking-image {
     aspect-ratio: 4 / 3;
     border-radius: 8px;
@@ -800,8 +876,27 @@
 
 .admin-table__actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     justify-content: flex-end;
+}
+
+.inventory-sample {
+    background: #f5faf8;
+    border: 1px dashed #b8d5cb;
+    border-radius: 8px;
+    color: #61746f;
+    padding: 1rem;
+}
+
+.inventory-sample strong,
+.inventory-sample span {
+    display: block;
+}
+
+.inventory-sample strong {
+    color: #1f2b2a;
+    margin-bottom: 0.3rem;
 }
 
 .admin-empty {

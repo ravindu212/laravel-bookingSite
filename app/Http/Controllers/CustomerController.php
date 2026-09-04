@@ -19,6 +19,8 @@ class CustomerController extends Controller
 
     public function booking(Hotel $hotel): View
     {
+        $hotel->load('inventories');
+
         return view('public.booking', compact('hotel'));
     }
 

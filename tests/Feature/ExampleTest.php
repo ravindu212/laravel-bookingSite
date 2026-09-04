@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Booking;
 use App\Models\Hotel;
+use App\Models\HotelInventory;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -345,12 +347,26 @@ class ExampleTest extends TestCase
             'website' => 'https://www.srilanka.travel/',
         ]);
 
+        HotelInventory::factory()->for($hotel)->create([
+            'category' => 'Foods',
+            'menu_type' => 'Breakfast',
+            'name' => 'Village breakfast',
+            'description' => 'Milk rice, lunu miris, and fresh fruit.',
+            'price' => 2500,
+            'people_count' => 2,
+        ]);
+
         $this->get(route('hotels.booking', $hotel))
             ->assertOk()
             ->assertSee('Booking page')
             ->assertSee('Anuradhapura Heritage Rest')
             ->assertSee('book@heritagerest.test')
-            ->assertSee('Visit hotel website');
+            ->assertSee('Visit hotel website')
+            ->assertSee('Included with this stay')
+            ->assertSee('Village breakfast')
+            ->assertSee('Breakfast')
+            ->assertSee('LKR 2,500.00')
+            ->assertSee('2 people');
     }
 
     public function test_customer_can_send_a_booking_request(): void
@@ -442,6 +458,94 @@ class ExampleTest extends TestCase
             ->assertOk()
             ->assertSee('Edit stay')
             ->assertSee('Original Stay');
+    }
+
+    public function test_admin_can_open_hotel_inventory_page(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create(['name' => 'Ella Inventory Stay']);
+        HotelInventory::factory()->for($hotel)->create([
+            'category' => 'Foods',
+            'menu_type' => 'Breakfast',
+            'name' => 'Sri Lankan breakfast',
+            'description' => 'String hoppers, dhal curry, and coconut sambol.',
+            'price' => 1800,
+            'people_count' => 1,
+        ]);
+
+        $this->get(route('admin.hotels.inventories', $hotel))
+            ->assertOk()
+            ->assertSee('Hotel inventory')
+            ->assertSee('Ella Inventory Stay')
+            ->assertSee('Sri Lankan breakfast')
+            ->assertSee('LKR 1,800.00');
+    }
+
+    public function test_admin_can_add_inventory_manually(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+
+        $response = $this->post(route('admin.hotels.inventories.store', $hotel), [
+            'category' => 'Foods',
+            'menu_type' => 'Lunch',
+            'name' => 'Rice and curry lunch',
+            'description' => 'Chicken curry, dhal, mallung, and papadam.',
+            'price' => 3500,
+            'people_count' => 2,
+        ]);
+
+        $response
+            ->assertRedirect(route('admin.hotels.inventories', $hotel))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('hotel_inventories', [
+            'hotel_id' => $hotel->id,
+            'category' => 'Foods',
+            'menu_type' => 'Lunch',
+            'name' => 'Rice and curry lunch',
+            'price' => 3500,
+            'people_count' => 2,
+        ]);
+    }
+
+    public function test_admin_can_import_inventory_from_csv(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $hotel = Hotel::factory()->create();
+        $file = UploadedFile::fake()->createWithContent(
+            'inventory.csv',
+            "category,menu_type,name,description,price,people_count\nFoods,Breakfast,Sri Lankan breakfast,String hoppers and dhal,1800,1\nPackage,Pool,Pool access,Evening pool pass,2500,2\n"
+        );
+
+        $response = $this->post(route('admin.hotels.inventories.import', $hotel), [
+            'inventory_file' => $file,
+        ]);
+
+        $response
+            ->assertRedirect(route('admin.hotels.inventories', $hotel))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('hotel_inventories', [
+            'hotel_id' => $hotel->id,
+            'category' => 'Foods',
+            'menu_type' => 'Breakfast',
+            'name' => 'Sri Lankan breakfast',
+            'price' => 1800,
+            'people_count' => 1,
+        ]);
+
+        $this->assertDatabaseHas('hotel_inventories', [
+            'hotel_id' => $hotel->id,
+            'category' => 'Package',
+            'menu_type' => 'Pool',
+            'name' => 'Pool access',
+            'price' => 2500,
+            'people_count' => 2,
+        ]);
     }
 
     public function test_admin_can_update_a_travel_stay(): void

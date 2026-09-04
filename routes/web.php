@@ -23,6 +23,9 @@ Route::prefix('admin')->group(function (): void {
         Route::get('/reviews', [AdminController::class, 'reviews'])->name('admin.reviews.index');
         Route::patch('/reviews/{review}/approve', [AdminController::class, 'approveReview'])->name('admin.reviews.approve');
         Route::post('/hotels', [AdminController::class, 'storeHotel'])->name('admin.hotels.store');
+        Route::get('/hotels/{hotel}/inventories', [AdminController::class, 'hotelInventories'])->name('admin.hotels.inventories');
+        Route::post('/hotels/{hotel}/inventories', [AdminController::class, 'storeHotelInventory'])->name('admin.hotels.inventories.store');
+        Route::post('/hotels/{hotel}/inventories/import', [AdminController::class, 'importHotelInventories'])->name('admin.hotels.inventories.import');
         Route::get('/hotels/{hotel}/edit', [AdminController::class, 'editHotel'])->name('admin.hotels.edit');
         Route::put('/hotels/{hotel}', [AdminController::class, 'updateHotel'])->name('admin.hotels.update');
         Route::delete('/hotels/{hotel}', [AdminController::class, 'destroyHotel'])->name('admin.hotels.destroy');

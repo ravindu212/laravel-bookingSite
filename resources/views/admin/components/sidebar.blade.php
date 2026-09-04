@@ -24,16 +24,20 @@
             <span>03</span>
             Edit stay
         </a>
-        <a class="admin-sidebar__link {{ $active === 'bookings' ? 'is-active' : '' }}" href="{{ route('admin.bookings.index') }}">
+        <a class="admin-sidebar__link {{ $active === 'inventory' ? 'is-active' : 'is-muted' }}" href="{{ $active === 'inventory' ? url()->current() : '#' }}" aria-disabled="{{ $active === 'inventory' ? 'false' : 'true' }}">
             <span>04</span>
+            Inventory
+        </a>
+        <a class="admin-sidebar__link {{ $active === 'bookings' ? 'is-active' : '' }}" href="{{ route('admin.bookings.index') }}">
+            <span>05</span>
             Bookings
         </a>
         <a class="admin-sidebar__link {{ $active === 'reviews' ? 'is-active' : '' }}" href="{{ route('admin.reviews.index') }}">
-            <span>05</span>
+            <span>06</span>
             Reviews
         </a>
         <a class="admin-sidebar__link is-muted" href="#" aria-disabled="true">
-            <span>06</span>
+            <span>07</span>
             Gallery
         </a>
     </nav>
